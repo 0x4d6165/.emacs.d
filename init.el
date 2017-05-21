@@ -1,6 +1,4 @@
-;;; Bad stuff
-(setq package-check-signature nil)
-
+;;;;;;;; gigavinyl emacs config ;;;;;;;;
 
 ;;; Setting PATH
 (setenv "PATH"
@@ -66,9 +64,10 @@
 
 ; Evil-leader
 (use-package evil-leader
-  :ensure t)
-(global-evil-leader-mode)
-(evil-leader/set-leader "<SPC>")
+  :ensure t
+  :config
+  (global-evil-leader-mode)
+  (evil-leader/set-leader "<SPC>"))
 
 ; Undo-tree
 (use-package undo-tree
@@ -76,8 +75,10 @@
 
 ; Evil-mode
 (use-package evil
-  :ensure t)
-(evil-mode 1)
+  :ensure t
+  :config
+  (evil-mode 1)
+  (setq evil-mode-line-format '(before . mode-line-front-space)))
 
 ; Nerd-commenter
 (use-package evil-nerd-commenter
@@ -101,15 +102,33 @@
   (setq-default evil-escape-key-sequence "jk")
   (evil-escape-mode))
 
+; Evil-easymotion
+(use-package evil-easymotion
+  :ensure t
+  :config
+  (evilem-default-keybindings "SPC"))
+
 ; Evil-snipe
 (use-package evil-snipe
   :ensure t
   :config
   (evil-snipe-mode 1)
   (setq evil-snipe-scope 'buffer)
-  (add-hook 'magit-mode-hook 'turn-off-evil-snipe-override-mode))
+  (add-hook 'magit-mode-hook 'turn-off-evil-snipe-override-mode)
+  (define-key evil-snipe-parent-transient-map (kbd "C-;")
+    (evilem-create 'evil-snipe-repeat
+                   :bind ((evil-snipe-scope 'buffer)
+                          (evil-snipe-enable-highlight)
+                          (evil-snipe-enable-incremental-highlight)))))
+
 
 ;;; Interface Plugins
+
+; Git-gutter-fringe
+(use-package fringe-helper
+  :ensure t)
+(use-package git-gutter-fringe
+  :ensure t)
 
 ; Neotree
 (use-package neotree
@@ -131,10 +150,7 @@
       (define-key evil-normal-state-local-map (kbd "S") 'neotree-enter-horizontal-split)
 
       (define-key evil-normal-state-local-map (kbd "RET") 'neotree-enter))))
-(evil-leader/set-key
-  "n"  'neotree-toggle
-  ;; "np" 'neotree-project-dir
-)
+(evil-leader/set-key "n"  'neotree-toggle)
 
 ; Popup
 (use-package popup
@@ -142,6 +158,14 @@
 
 
 ;;; Misc Utils
+
+; Magit
+(use-package magit
+  :ensure t)
+(use-package evil-magit
+  :ensure t
+  :config
+  (setq evil-magit-use-y-for-yank t))
 
 ;Editorconfig
 (use-package editorconfig
@@ -159,7 +183,7 @@
 (use-package flyspell-popup
   :ensure t
   :config
-  (evil-leader/set-key "f" 'flyspell-popup-correct)
+  (evil-leader/set-key "fc" 'flyspell-popup-correct)
   (setq ispell-list-command "--list")
   (dolist (hook '(org-mode-hook))
     (add-hook hook (lambda () (flyspell-mode 1))))
@@ -191,7 +215,7 @@
 ; Exiting and saving
 (evil-leader/set-key
   "q" 'save-buffers-kill-terminal
-  "w" 'save-buffer
+  "fs" 'save-buffer
 )
 
 ; Open init file
@@ -206,15 +230,22 @@
 (evil-leader/set-key "a" 'align-regexp)
 
 ; Window management
-;; (evil-leader/set-key
-;;   "wh" 'windmove-left
-;;   "wl" 'windmove-right
-;;   "wk" 'windmove-up
-;;   "wj" 'windmove-down
-;;   "v"  'split-window-horizontally
-;;   "hs" 'split-window-vertically
-;;   "wd" 'delete-window
-;; )
+(evil-leader/set-key
+  "wh" 'windmove-left
+  "wl" 'windmove-right
+  "wk" 'windmove-up
+  "wj" 'windmove-down
+  "v"  'split-window-horizontally
+  "hs" 'split-window-vertically
+  "wd" 'delete-window)
+
+; Buffer management
+(evil-leader/set-key
+  "bd" 'kill-buffer
+  "bn" 'next-buffer
+  "bp" 'previous-buffer)
+  
+
 
 ;;; Making it pretty
 
@@ -222,12 +253,16 @@
 (set-default-font "GohuFont-12")
 
 ; Theme
-(use-package doom-themes
-  :ensure t)
 (use-package all-the-icons
   :ensure t)
-(doom-themes-neotree-config)
-(load-theme 'doom-vibrant t)
+(use-package doom-themes
+  :ensure t
+  :config
+  (doom-themes-neotree-config)
+  (load-theme 'doom-vibrant t)
+  (setq doom-neotree-file-icons t)
+  (setq doom-neotree-project-size 1)
+  (setq doom-neotree-folder-size 0.95))
 
 ; Line numbers
 (use-package nlinum-relative
