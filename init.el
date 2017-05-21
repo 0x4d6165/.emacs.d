@@ -161,7 +161,12 @@
 
 ; Magit
 (use-package magit
-  :ensure t)
+  :ensure t
+  :config
+  (evil-leader/set-key
+    "ms" 'magit-status
+    "mp" 'magit-dispatch-popup
+    "mc" 'with-editor-finish))
 (use-package evil-magit
   :ensure t
   :config
