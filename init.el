@@ -1,5 +1,8 @@
 ;;;;;;;; gigavinyl emacs config ;;;;;;;;
 
+;;; Bad stuff
+(setq package-check-signature nil)
+
 ;;; Setting PATH
 (setenv "PATH"
   (concat
@@ -62,12 +65,21 @@
 
 ;;; Evil!!
 
-; Evil-leader
-(use-package evil-leader
+; General
+(use-package general
   :ensure t
   :config
-  (global-evil-leader-mode)
-  (evil-leader/set-leader "<SPC>"))
+  (setq general-default-prefix "<SPC>")
+  (general-evil-setup)
+  (general-nmap "z" 'find-file))
+
+
+; Evil-leader
+;; (use-package evil-leader
+;;   :ensure t
+;;   :config
+;;   (global-evil-leader-mode)
+;;   (evil-leader/set-leader ","))
 
 ; Undo-tree
 (use-package undo-tree
@@ -83,7 +95,7 @@
 ; Nerd-commenter
 (use-package evil-nerd-commenter
   :ensure t)
-(evil-leader/set-key
+(general-nmap
   "ci" 'evilnc-comment-or-uncomment-lines
   "cl" 'evilnc-quick-comment-or-uncomment-to-the-line
   "ll" 'evilnc-quick-comment-or-uncomment-to-the-line
@@ -124,11 +136,47 @@
 
 ;;; Interface Plugins
 
+; Telephone-line
+(use-package telephone-line
+  :ensure t
+  :config
+  (setq telephone-line-lhs
+        '((evil   . (telephone-line-evil-tag-segment))
+          (accent . (telephone-line-vc-segment
+                     telephone-line-erc-modified-channels-segment
+                     telephone-line-process-segment))
+          (nil    . (telephone-line-buffer-segment))))
+
+  (setq telephone-line-rhs
+        '((nil    . (telephone-line-misc-info-segment))
+          (accent . (telephone-line-major-mode-segment))
+          (evil   . (telephone-line-airline-position-segment))))
+
+  (telephone-line-mode t))
+
+; Rich-minority
+(use-package rich-minority
+  :ensure t
+  :config
+  (setf rm-blacklist "")
+  (rich-minority-mode 1))
+
+; Buffer-line
+(use-package buffer-line
+  :load-path "~/.emacs.d/buffer-line"
+  :init
+  (setq buffer-line-place 'echo-area) ; Acceptable value: `nil' or `echo-area', `mode-line'
+  :config
+  (buffer-line-mode 1))
+
 ; Git-gutter-fringe
 (use-package fringe-helper
   :ensure t)
 (use-package git-gutter-fringe
-  :ensure t)
+  :ensure t
+  :config
+  (global-git-gutter-mode t)
+  (setq git-gutter-fr:side 'right-fringe))
 
 ; Neotree
 (use-package neotree
@@ -150,7 +198,7 @@
       (define-key evil-normal-state-local-map (kbd "S") 'neotree-enter-horizontal-split)
 
       (define-key evil-normal-state-local-map (kbd "RET") 'neotree-enter))))
-(evil-leader/set-key "n"  'neotree-toggle)
+(general-nmap "n"  'neotree-toggle)
 
 ; Popup
 (use-package popup
@@ -159,36 +207,75 @@
 
 ;;; Misc Utils
 
+; Evil-matchit
+(use-package evil-matchit
+  :ensure t)
+
+; Kill-or-bury-alive
+(use-package kill-or-bury-alive
+  :ensure t)
+
+; Flx
+(use-package flx
+  :ensure t)
+
+; Projectile
+(use-package projectile
+  :ensure t
+  :config
+  (projectile-mode))
+
+; Ivy/Swiper/Counsel
+(use-package ivy
+  :ensure t
+  :config
+  (setq ivy-re-builders-alist
+      '((t . ivy--regex-fuzzy))))
+(use-package swiper
+  :ensure t)
+(use-package counsel-projectile
+  :ensure t
+  :config
+  (counsel-projectile-on))
+(general-nmap "<SPC>" 'counsel-M-x)
+
+; Flycheck
+(use-package flycheck
+  :ensure t
+  :init
+  (add-hook 'after-init-hook #'global-flycheck-mode))
+
+; Evil-surround
+(use-package evil-surround
+  :ensure t
+  :init
+  (global-evil-surround-mode 1))
+
 ; Magit
 (use-package magit
   :ensure t
   :config
-  (evil-leader/set-key
-    "ms" 'magit-status
-    "mp" 'magit-dispatch-popup
-    "mc" 'with-editor-finish))
+  (general-nmap
+    "ms"  'magit-status
+    "mch" 'magit-checkout
+    "mp"  'magit-dispatch-popup
+    "mc"  'with-editor-finish))
 (use-package evil-magit
   :ensure t
   :config
   (setq evil-magit-use-y-for-yank t))
 
-;Editorconfig
+; Editorconfig
 (use-package editorconfig
   :ensure t
   :config
   (editorconfig-mode 1))
 
-; Smex
-(use-package smex
-  :ensure t
-  :config
-  (evil-leader/set-key "<SPC>" 'smex))
-
 ; Flyspell
 (use-package flyspell-popup
   :ensure t
   :config
-  (evil-leader/set-key "fc" 'flyspell-popup-correct)
+  (general-nmap "sc" 'flyspell-popup-correct)
   (setq ispell-list-command "--list")
   (dolist (hook '(org-mode-hook))
     (add-hook hook (lambda () (flyspell-mode 1))))
@@ -218,7 +305,7 @@
 ;;; Misc bindings
 
 ; Exiting and saving
-(evil-leader/set-key
+(general-nmap
   "q" 'save-buffers-kill-terminal
   "fs" 'save-buffer
 )
@@ -229,13 +316,13 @@
   (interactive)
   (find-file user-init-file)
 )
-(evil-leader/set-key "ev" 'open-init-file)
+(general-nmap "ev" 'open-init-file)
 
 ; Align Regexp
-(evil-leader/set-key "a" 'align-regexp)
+(general-nmap "a" 'align-regexp)
 
 ; Window management
-(evil-leader/set-key
+(general-nmap
   "wh" 'windmove-left
   "wl" 'windmove-right
   "wk" 'windmove-up
@@ -245,11 +332,12 @@
   "wd" 'delete-window)
 
 ; Buffer management
-(evil-leader/set-key
-  "bd" 'kill-buffer
+(general-nmap
+  "bd" 'kill-or-bury-alive
   "bn" 'next-buffer
-  "bp" 'previous-buffer)
-  
+  "bp" 'previous-buffer
+  "bb" 'ivy-switch-buffer)
+
 
 
 ;;; Making it pretty
@@ -299,9 +387,30 @@
   :mode (("\\.org$'" . org-mode))
   :interpreter "org-mode"
   :config
-  (evil-leader/set-key-for-mode 'org-mode "cb" 'org-cycle-list-bullet))
+  (setq org-export-with-toc 'nil)
+  :general
+  (general-nmap
+   "cb" 'org-cycle-list-bullet
+   "ex" 'org-export-dispatch))
 (use-package evil-org
-  :ensure t)
+  :ensure t
+  :defer t)
+
+; Latex
+(use-package auctex
+  :ensure t
+  :mode ("\\.tex\\'" . latex-mode)
+  :commands (latex-mode LaTeX-mode plain-tex-mode)
+  :init
+  (progn
+    (add-hook 'LaTeX-mode-hook #'LaTeX-preview-setup)
+    (add-hook 'LaTeX-mode-hook #'flyspell-mode)
+    (add-hook 'LaTeX-mode-hook #'turn-on-reftex)
+    (setq TeX-auto-save t
+	  TeX-parse-self t
+	  TeX-save-query nil
+	  TeX-PDF-mode t)
+    (setq-default TeX-master nil)))
 
 ; Web-mode
 (use-package web-mode
@@ -318,16 +427,40 @@
     (setq web-mode-engines-alist
           '(("\\.jinja\\'"  . "django")))))
 
+; Dockerfile-mode
+(use-package dockerfile-mode
+  :ensure t
+  :mode "Dockerfile")
+
+; Nginx-mode
+(use-package nginx-mode
+  :ensure t
+  :mode "nginx.conf")
+
+; Yaml-mode
+(use-package yaml-mode
+  :ensure t
+  :mode "\\.yaml\\'")
+
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- )
+ '(custom-safe-themes
+   (quote
+    ("3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" "84d2f9eeb3f82d619ca4bfffe5f157282f4779732f48a5ac1484d94d5ff5b279" "a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" default))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(nlinum-relative-current-face ((t (:inherit linum :background "#22252c" :foreground "#D4D4D4" :weight bold)))))
+ '(nlinum-relative-current-face ((t (:inherit linum :background "#22252c" :foreground "#D4D4D4" :weight bold))))
+ '(telephone-line-evil-emacs ((t (:inherit telephone-line-evil :background "#7e57c2"))))
+ '(telephone-line-evil-insert ((t (:inherit telephone-line-evil :background "#7bc275"))))
+ '(telephone-line-evil-motion ((t (:inherit telephone-line-evil :background "#1f5582"))))
+ '(telephone-line-evil-normal ((t (:inherit telephone-line-evil :background "#51afef"))))
+ '(telephone-line-evil-operator ((t (:inherit telephone-line-evil :background "#a9a1e1"))))
+ '(telephone-line-evil-replace ((t (:inherit telephone-line-evil :background "#181e26"))))
+ '(telephone-line-evil-visual ((t (:inherit telephone-line-evil :background "#e69055")))))
