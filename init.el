@@ -259,7 +259,7 @@
     "ms"  'magit-status
     "mch" 'magit-checkout
     "mp"  'magit-dispatch-popup
-    "mc"  'with-editor-finish))
+    "mco"  'with-editor-finish))
 (use-package evil-magit
   :ensure t
   :config
